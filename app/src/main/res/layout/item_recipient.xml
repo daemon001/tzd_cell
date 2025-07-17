@@ -20,6 +20,15 @@
             android:textSize="16sp"
             android:textStyle="bold"/>
 
+        <TextView
+            android:id="@+id/placesCountText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 місць"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginEnd="8dp"/>
+
         <ImageButton
             android:id="@+id/editNameBtn"
             android:layout_width="wrap_content"

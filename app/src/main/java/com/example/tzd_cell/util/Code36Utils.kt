@@ -42,6 +42,9 @@ object Code36Utils {
             recipients.add(ParsedBarcode.RecipientInfo(rId, rPlaces))
             i += 2
         }
+        if (recipients.none { it.recipientId == recipientId }) {
+            recipients.add(ParsedBarcode.RecipientInfo(recipientId, totalPlacesInInvoice))
+        }
         return ParsedBarcode(
             recipientId = recipientId,
             invoiceNumber = invoiceNumber,

@@ -25,10 +25,12 @@ class RecipientAdapter(
         val recipientId: String,
         val customName: String?,
         val invoices: Map<String, List<InvoicePlace>>,
-        val allScanned: Boolean
+        val allScanned: Boolean,
+        val expectedPlaces: Int
     )
 
     private var groups: List<RecipientGroup> = emptyList()
+    private var lastScannedRecipientId: String? = null
 
     fun updateData(expected: List<ExpectedLoad>, scanned: List<ScannedItem>, recipientNames: Map<String, String>) {
         this.expected = expected
@@ -57,14 +59,24 @@ class RecipientAdapter(
                 }
                 invoiceMap[inv] = places
             }
-            val allScanned = invoiceMap.values.flatten().all { it.scanned }
+            val allScanned = invoiceMap.isNotEmpty() && invoiceMap.values.flatten().all { it.scanned }
             RecipientGroup(
                 recipientId = exp.recipient_id,
                 customName = customName,
                 invoices = invoiceMap,
-                allScanned = allScanned
+                allScanned = allScanned,
+                expectedPlaces = exp.expected_total_places_for_recipient
             )
         }
+    }
+
+    fun setLastScannedRecipient(recipientId: String?) {
+        lastScannedRecipientId = recipientId
+        notifyDataSetChanged()
+    }
+
+    fun getPositionForRecipient(recipientId: String?): Int {
+        return groups.indexOfFirst { it.recipientId == recipientId }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecipientViewHolder {
@@ -76,17 +88,26 @@ class RecipientAdapter(
 
     override fun onBindViewHolder(holder: RecipientViewHolder, position: Int) {
         val group = groups[position]
-        holder.bind(group, onEditName)
+        val isLastScanned = group.recipientId == lastScannedRecipientId
+        holder.bind(group, onEditName, isLastScanned)
     }
 
     class RecipientViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val nameText: TextView = itemView.findViewById(R.id.recipientName)
+        private val placesCountText: TextView = itemView.findViewById(R.id.placesCountText)
         private val editBtn: ImageButton = itemView.findViewById(R.id.editNameBtn)
         private val invoicesLayout: LinearLayout = itemView.findViewById(R.id.invoicesLayout)
-        fun bind(group: RecipientGroup, onEditName: (String) -> Unit) {
+        fun bind(group: RecipientGroup, onEditName: (String) -> Unit, isLastScanned: Boolean = false) {
             nameText.text = group.customName ?: group.recipientId
+            placesCountText.text = "${group.expectedPlaces} місць"
             editBtn.setOnClickListener { onEditName(group.recipientId) }
-            itemView.setBackgroundResource(if (group.allScanned) R.color.pastel_green else android.R.color.transparent)
+            if (group.allScanned) {
+                itemView.setBackgroundResource(R.color.pastel_green)
+            } else if (isLastScanned) {
+                itemView.setBackgroundResource(R.color.teal_200) // або інший колір для підсвічування
+            } else {
+                itemView.setBackgroundResource(android.R.color.transparent)
+            }
             invoicesLayout.removeAllViews()
             for ((invoice, places) in group.invoices) {
                 val invoiceText = TextView(itemView.context)

@@ -33,12 +33,13 @@ class MainActivity : ComponentActivity() {
     private lateinit var repository: LoadRepository
     private lateinit var adapter: RecipientAdapter
     private lateinit var viewModel: MainViewModel
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         android.util.Log.d(TAG, "onCreate: Activity створено")
         setContentView(R.layout.activity_main)
-        val recyclerView = findViewById<RecyclerView>(R.id.recipientsRecyclerView)
+        recyclerView = findViewById(R.id.recipientsRecyclerView)
         val progressText = findViewById<android.widget.TextView>(R.id.progressText)
         val finishButton = findViewById<android.widget.Button>(R.id.finishButton)
         adapter = RecipientAdapter(emptyList(), emptyList(), emptyMap()) { recipientId ->
@@ -115,7 +116,13 @@ class MainActivity : ComponentActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                         viewModel.loadAll()
-                        // TODO: Оновити UI
+                        // Після оновлення даних встановлюємо фокус на просканованого отримувача
+                        // Затримка, щоб дочекатися оновлення адаптера
+                        recyclerView.postDelayed({
+                            adapter.setLastScannedRecipient(parsed.recipientId)
+                            val pos = adapter.getPositionForRecipient(parsed.recipientId)
+                            if (pos >= 0) recyclerView.scrollToPosition(pos)
+                        }, 200)
                     }
                     is LoadRepository.ProcessResult.AlreadyScanned -> {
                         android.util.Log.d(TAG, "handleBarcode: Уже відскановано")
