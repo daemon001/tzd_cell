@@ -59,7 +59,9 @@ class RecipientAdapter(
                 }
                 invoiceMap[inv] = places
             }
-            val allScanned = invoiceMap.isNotEmpty() && invoiceMap.values.flatten().all { it.scanned }
+            // Перевіряємо, чи всі очікувані місця відскановані
+            val totalScannedPlaces = recipientScanned.size
+            val allScanned = totalScannedPlaces >= exp.expected_total_places_for_recipient
             RecipientGroup(
                 recipientId = exp.recipient_id,
                 customName = customName,
