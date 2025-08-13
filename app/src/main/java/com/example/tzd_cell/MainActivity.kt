@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.text.InputType
 import android.widget.EditText
 import android.widget.Toast
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -16,8 +16,10 @@ import com.example.tzd_cell.repository.LoadRepository
 import com.example.tzd_cell.ui.MainViewModel
 import com.example.tzd_cell.ui.RecipientAdapter
 import kotlinx.coroutines.launch
+import android.view.Menu
+import android.view.MenuItem
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     companion object {
         const val TAG = "TZD_DEBUG"
         const val ACTION_DATA_CODE_RECEIVED = "com.sunmi.scanner.ACTION_DATA_CODE_RECEIVED"
@@ -37,7 +39,6 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main)
         recyclerView = findViewById(R.id.recipientsRecyclerView)
         val progressText = findViewById<android.widget.TextView>(R.id.progressText)
-        val finishButton = findViewById<android.widget.Button>(R.id.finishButton)
         adapter = RecipientAdapter(emptyList(), emptyList(), emptyMap()) { recipientId ->
             showEditNameDialog(recipientId)
         }
@@ -49,7 +50,11 @@ class MainActivity : ComponentActivity() {
         ).build()
         viewModel = object : ViewModelProvider(this, object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return MainViewModel(db) as T
+                return if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+                    MainViewModel(db) as T
+                } else {
+                    throw IllegalArgumentException("Unknown ViewModel class")
+                }
             }
         }) {}.get(MainViewModel::class.java)
         lifecycleScope.launch {
@@ -65,9 +70,6 @@ class MainActivity : ComponentActivity() {
             viewModel.progress.collect { (scanned, total) ->
                 progressText.text = "Прогрес: $scanned з $total"
             }
-        }
-        finishButton.setOnClickListener {
-            viewModel.clearAll()
         }
         viewModel.loadAll()
         repository = LoadRepository(db)
@@ -171,5 +173,36 @@ class MainActivity : ComponentActivity() {
             }
             .setNegativeButton("Відміна", null)
             .show()
+    }
+
+    private fun showFinishConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Підтвердження завершення")
+            .setMessage("Ви впевнені, що хочете завершити збірку? Всі дані будуть видалені.")
+            .setPositiveButton("Так, завершити") { _, _ ->
+                viewModel.clearAll()
+            }
+            .setNegativeButton("Відміна", null)
+            .show()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_finish -> {
+                showFinishConfirmationDialog()
+                true
+            }
+            R.id.action_version -> {
+                val version = packageManager.getPackageInfo(packageName, 0).versionName
+                Toast.makeText(this, "Версія: v$version", Toast.LENGTH_SHORT).show()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 } 
