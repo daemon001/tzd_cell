@@ -101,7 +101,9 @@ class RecipientAdapter(
         private val invoicesLayout: LinearLayout = itemView.findViewById(R.id.invoicesLayout)
         fun bind(group: RecipientGroup, onEditName: (String) -> Unit, isLastScanned: Boolean = false) {
             nameText.text = group.customName ?: group.recipientId
-            placesCountText.text = "${group.expectedPlaces} місць"
+            // Рахуємо кількість відсканованих місць для цього отримувача
+            val scannedCount = group.invoices.values.flatten().count { it.scanned }
+            placesCountText.text = "$scannedCount/${group.expectedPlaces} місць"
             editBtn.setOnClickListener { onEditName(group.recipientId) }
             if (group.allScanned) {
                 itemView.setBackgroundResource(R.color.pastel_green)
