@@ -1,25 +1,21 @@
 package com.example.tzd_cell
 
-import android.content.IntentFilter
+import android.app.AlertDialog
 import android.os.Bundle
+import android.text.InputType
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.room.Room
-import com.example.tzd_cell.util.Code36Utils
-import kotlinx.coroutines.launch
-import com.example.tzd_cell.repository.LoadRepository
-import android.app.AlertDialog
-import android.text.InputType
-import android.widget.EditText
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
+import com.example.tzd_cell.repository.LoadRepository
 import com.example.tzd_cell.ui.MainViewModel
 import com.example.tzd_cell.ui.RecipientAdapter
-import kotlinx.coroutines.flow.collect
-import androidx.core.content.ContextCompat
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     companion object {
